@@ -1,4 +1,4 @@
-# 👋 Hej, tu Szymon
+# Hej, tu Szymon
 
 
   
@@ -12,12 +12,12 @@
   
 
 
-## 🌐 Portfolio
+## Portfolio
 
 Chcesz zobaczyć moje projekty i dowiedzieć się więcej?  
 **[szymon-tulodziecki.github.io/portfolio](https://szymon-tulodziecki.github.io/portfolio/)**
 
-## 🛠️ Technologie, których używam
+## Technologie, których używam
 
 ### Frontend
 
@@ -32,15 +32,15 @@ Chcesz zobaczyć moje projekty i dowiedzieć się więcej?
 -  **C** – Używam do aplikacji konsolowych oraz aby lepiej zrozumieć, jak działa oprogramowanie na niskim poziomie.
 -  **Java** – Uczę się programowania obiektowego i poznaję podstawy aplikacji desktopowych.
 -  **C++** – Wykorzystuję w projektach wymagających wydajności i pracy z pamięcią.
-- 🧠 **Nauka algorytmów** – Rozwiązuję zadania na platformie SPOJ, aby rozwijać umiejętności algorytmiczne.
+-  **Nauka algorytmów** – Rozwiązuję zadania na platformie SPOJ, aby rozwijać umiejętności algorytmiczne.
 
-## ✨ Co mnie napędza?
+##  Co mnie napędza?
 
-- 🧩 Rozwiązywanie nietypowych problemów i łamigłówek  
-- 🛠️ Tworzenie narzędzi, które realnie ułatwiają codzienną pracę  
-- 🚦 Eksperymentowanie z nowymi technologiami i frameworkami
+-  Rozwiązywanie nietypowych problemów i łamigłówek  
+-  Tworzenie narzędzi, które realnie ułatwiają codzienną pracę  
+-  Eksperymentowanie z nowymi technologiami i frameworkami
 
-## 💡 Moje podejście
+##  Moje podejście
 
 Wierzę, że najlepsze projekty powstają na styku kreatywności i analizy. Zawsze szukam nieszablonowych rozwiązań i lubię patrzeć na wyzwania z różnych perspektyw.
 
