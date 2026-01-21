@@ -8,6 +8,9 @@ on:
     branches:
     - main
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -38,6 +41,7 @@ jobs:
         with:
           target_branch: output
           build_dir: dist
+          github_token: ${{ secrets.GITHUB_TOKEN }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -46,3 +50,5 @@ jobs:
         with:
           commit_message: "docs: update profile content"
           file_pattern: "README.md"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
