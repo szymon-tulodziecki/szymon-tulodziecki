@@ -44,4 +44,4 @@
 - Tailwind CSS
 
 ## Projekty
-- Wyróżnione repozytoria: przypnij je w profilu (Pinned) — wtedy zawsze będą “na górze” bez żadnych akcji.
+- Wyróżnione repozytoria: 
