@@ -24,5 +24,3 @@
 {{range recentRepos 5}}
 - [{{.Name}}]({{.URL}}) – {{.Description}}
 {{end}}
-
-<p align="right"><i>Last update: {{currentDate}}</i></p>
