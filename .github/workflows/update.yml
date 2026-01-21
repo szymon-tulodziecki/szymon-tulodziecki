@@ -1,0 +1,48 @@
+name: Update Profile
+
+on:
+  schedule:
+    - cron: "0 */12 * * *" 
+  workflow_dispatch:
+  push:
+    branches:
+    - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Generate Snake
+        uses: Platane/snk@v3
+        with:
+          github_user_name: szymon-tulodziecki
+          outputs: |
+            dist/github-contribution-grid-snake.svg
+            dist/github-contribution-grid-snake-dark.svg?palette=github-dark
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Generate README
+        uses: muesli/readme-scribe@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          template: "README.gtpl"
+          writeTo: "README.md"
+
+      - name: Push Snake to Output Branch
+        uses: crazy-max/ghaction-github-pages@v3
+        with:
+          target_branch: output
+          build_dir: dist
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Commit README updates
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: "docs: update profile content"
+          file_pattern: "README.md"
