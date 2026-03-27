@@ -1,47 +1,51 @@
-<div align="center">
+name: Update Profile
 
-# Cześć, jestem Szymon 👋
+on:
+  schedule:
+    - cron: "0 */12 * * *"
+  workflow_dispatch:
+  push:
+    branches: [main]
 
-<p align="center">
-  <img alt="C" src="https://img.shields.io/badge/C-111111?style=flat&logo=c&logoColor=white" />
-  <img alt="C++" src="https://img.shields.io/badge/C%2B%2B-111111?style=flat&logo=cplusplus&logoColor=white" />
-  <img alt="C#" src="https://img.shields.io/badge/C%23-111111?style=flat&logo=csharp&logoColor=white" />
-  <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-111111?style=flat&logo=typescript&logoColor=white" />
-  <img alt="JavaScript" src="https://img.shields.io/badge/JavaScript-111111?style=flat&logo=javascript&logoColor=white" />
-  <img alt="React" src="https://img.shields.io/badge/React-111111?style=flat&logo=react&logoColor=white" />
-  <img alt="HTML5" src="https://img.shields.io/badge/HTML5-111111?style=flat&logo=html5&logoColor=white" />
-  <img alt="CSS3" src="https://img.shields.io/badge/CSS3-111111?style=flat&logo=css3&logoColor=white" />
-  <img alt="Redis" src="https://img.shields.io/badge/Redis-111111?style=flat&logo=redis&logoColor=white" />
-  <img alt="Docker" src="https://img.shields.io/badge/Docker-111111?style=flat&logo=docker&logoColor=white" />
-  <img alt="PHP" src="https://img.shields.io/badge/PHP-111111?style=flat&logo=php&logoColor=white" />
-  <img alt="Laravel" src="https://img.shields.io/badge/Laravel-111111?style=flat&logo=laravel&logoColor=white" />
-  <img alt="Microsoft SQL Server" src="https://img.shields.io/badge/MSSQL-111111?style=flat&logo=microsoftsqlserver&logoColor=white" />
-  <img alt="Python" src="https://img.shields.io/badge/Python-111111?style=flat&logo=python&logoColor=white" />
-</p>
+permissions:
+  contents: write
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/szymon-tulodziecki/szymon-tulodziecki/output/github-contribution-grid-snake-dark.svg" />
-  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/szymon-tulodziecki/szymon-tulodziecki/output/github-contribution-grid-snake.svg" />
-  <img alt="github contribution snake" src="https://raw.githubusercontent.com/szymon-tulodziecki/szymon-tulodziecki/output/github-contribution-grid-snake.svg" />
-</picture>
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
 
-<a href="https://git.io/awesome-stats-card">
-  <img src="https://awesome-github-stats.azurewebsites.net/user-stats/szymon-tulodziecki?cardType=github&theme=gotham&fontFamily=Merriweather%20Sans&preferLogin=false" alt="GitHub stats" />
-</a>
+      - name: Generate Snake
+        uses: Platane/snk@v3
+        with:
+          github_user_name: szymon-tulodziecki
+          outputs: |
+            dist/github-contribution-grid-snake.svg
+            dist/github-contribution-grid-snake-dark.svg?palette=github-dark
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-</div>
+      - name: Push Snake to Output Branch
+        uses: crazy-max/ghaction-github-pages@v3
+        with:
+          target_branch: output
+          build_dir: dist
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
----
+      - name: Generate README from template
+        uses: muesli/readme-scribe@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          template: "README.gtpl"
+          writeTo: "README.md"
 
-## O mnie
-- Buduję aplikacje webowe i automatyzuję procesy.
-- Lubię proste, szybkie i tanie w utrzymaniu rozwiązania.
-- Aktualnie: projekty w TypeScript/Node + trochę DevOps.
-
-## Tech stack
-- TypeScript, Node.js, SQL
-- Docker, GitHub Actions
-- Tailwind CSS
-
-## Projekty
-- Wyróżnione repozytoria: 
+      - name: Commit README updates
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: "docs: update profile readme"
+          file_pattern: "README.md"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

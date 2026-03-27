@@ -26,14 +26,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Generate README
-        uses: muesli/readme-scribe@master
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          template: "README.gtpl"
-          writeTo: "README.md"
-
       - name: Push Snake to Output Branch
         uses: crazy-max/ghaction-github-pages@v3
         with:
@@ -42,10 +34,18 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Generate README from template
+        uses: muesli/readme-scribe@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          template: "README.gtpl"
+          writeTo: "README.md"
+
       - name: Commit README updates
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
-          commit_message: "docs: update profile content"
+          commit_message: "docs: update profile readme"
           file_pattern: "README.md"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
