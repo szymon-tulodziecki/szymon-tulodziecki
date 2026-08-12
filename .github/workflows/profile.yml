@@ -1,0 +1,55 @@
+name: profile
+
+on:
+  schedule:
+    # 02:00 UTC — 03:00/04:00 czasu polskiego
+    - cron: "0 2 * * *"
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/profile.yml"
+      - ".github/3d-contrib-dragon.json"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: profile
+  cancel-in-progress: true
+
+jobs:
+  generate:
+    name: generate profile assets
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      # izometryczny kalendarz kontrybucji -> profile-3d-contrib/profile-dragon.svg
+      - name: 3D contribution calendar
+        uses: yoshi389111/github-profile-3d-contrib@latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          USERNAME: ${{ github.repository_owner }}
+          SETTING_JSON: .github/3d-contrib-dragon.json
+
+      # wąż zjadający kontrybucje -> dist/snake-dragon.svg
+      - name: Contribution snake
+        uses: Platane/snk@v3
+        with:
+          github_user_name: ${{ github.repository_owner }}
+          # domyslna paleta snk to github-LIGHT (biale tlo) - nadpisujemy wszystko jawnie
+          outputs: >-
+            dist/snake-dragon.svg?color_snake=%23C4B28A&color_dots=%23252523,%23414A3C,%235C6B52,%23768B6C,%23A0B78D&color_background=%23181616&color_dot_border=%23FFFFFF12
+
+      - name: Commit & push
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A profile-3d-contrib dist
+          if git diff --staged --quiet; then
+            echo "brak zmian w wygenerowanych plikach"
+          else
+            git commit -m "chore(profile): regenerate contribution graphics"
+            git push
+          fi

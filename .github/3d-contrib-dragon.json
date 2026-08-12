@@ -1,0 +1,17 @@
+{
+  "type": "normal",
+  "fileName": "profile-dragon.svg",
+  "backgroundColor": "#181616",
+  "foregroundColor": "#C5C9C5",
+  "strongColor": "#C4B28A",
+  "weakColor": "#7A8382",
+  "radarColor": "#8BA4B0",
+  "growingAnimation": true,
+  "contribColors": [
+    "#252523",
+    "#414A3C",
+    "#5C6B52",
+    "#768B6C",
+    "#A0B78D"
+  ]
+}
