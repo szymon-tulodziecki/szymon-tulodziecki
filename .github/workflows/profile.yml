@@ -10,6 +10,7 @@ on:
     paths:
       - ".github/workflows/profile.yml"
       - ".github/3d-contrib-dragon.json"
+      - ".github/scripts/**"
 
 permissions:
   contents: write
