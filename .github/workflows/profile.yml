@@ -33,20 +33,15 @@ jobs:
           USERNAME: ${{ github.repository_owner }}
           SETTING_JSON: .github/3d-contrib-dragon.json
 
-      # wąż zjadający kontrybucje -> dist/snake-dragon.svg
-      - name: Contribution snake
-        uses: Platane/snk@v3
-        with:
-          github_user_name: ${{ github.repository_owner }}
-          # domyslna paleta snk to github-LIGHT (biale tlo) - nadpisujemy wszystko jawnie
-          outputs: >-
-            dist/snake-dragon.svg?color_snake=%23C4B28A&color_dots=%23252523,%23414A3C,%235C6B52,%23768B6C,%23A0B78D&color_background=%23181616&color_dot_border=%23FFFFFF12
+      # SETTING_JSON przyjmuje tylko jednolity kolor tla - gradient dokladamy tutaj
+      - name: Dragonize render
+        run: python3 .github/scripts/dragonize-render.py profile-3d-contrib/profile-dragon.svg
 
       - name: Commit & push
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A profile-3d-contrib dist
+          git add -A profile-3d-contrib
           if git diff --staged --quiet; then
             echo "brak zmian w wygenerowanych plikach"
           else
