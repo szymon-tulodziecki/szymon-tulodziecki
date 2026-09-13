@@ -42,6 +42,7 @@ SATURATION = (0.20, 0.30)
 TAGLINE = "full-stack · embedded · devops"
 LEFT_TITLE = "BY THE NUMBERS"
 RIGHT_TITLE = "LANGUAGES"
+RIGHT_NOTE = "averaged per repository"
 
 PAD = 52
 COLUMN_X = 470
@@ -225,19 +226,20 @@ def draw_identity(draw, name, tagline):
     )
 
 
-def draw_tiles(draw, top, tiles):
+def draw_tiles(draw, top, tiles, palette):
     tracked(draw, (PAD, top), LEFT_TITLE, bold(12), ACCENT, 3)
     for i, (value, label) in enumerate(tiles):
         x = PAD + 196 * (i % 2)
         y = top + 32 + 62 * (i // 2)
-        draw.text((x, y), value, font=bold(25), fill=FG + (255,))
+        draw.text((x, y), value, font=bold(25),
+                  fill=palette[i % len(palette)] + (255,))
         draw.text((x + 2, y + 34), label, font=regular(11), fill=DIM + (255,))
 
 
-def draw_languages(draw, top, ranked, total_bytes, palette):
+def draw_languages(draw, top, ranked, palette):
     tracked(draw, (COLUMN_X, top), RIGHT_TITLE, bold(12), ACCENT, 3)
     draw.text(
-        (GUTTER, top), f"{decimal(total_bytes / 1e6)} MB of code",
+        (GUTTER, top), RIGHT_NOTE,
         font=regular(12), fill=DIM + (255,), anchor="ra",
     )
 
@@ -319,8 +321,8 @@ def build(edge_path, stats_path, out_path):
         (number(len(languages)), "languages"),
         (number(stats["stars"]), "stars"),
         (number(stats["contributions"]), "contributions / year"),
-    ])
-    draw_languages(draw, top, ranked, sum(languages.values()), palette)
+    ], palette)
+    draw_languages(draw, top, ranked, palette)
     draw_spectrum(canvas, ranked, palette)
 
     canvas.save(out_path)

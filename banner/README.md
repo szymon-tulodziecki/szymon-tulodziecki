@@ -43,8 +43,9 @@ się jego własny rozkład procentowy, a dopiero te rozkłady się uśrednia
 (`shares` w `stats.json`). Jeden ciężki notebook nie przykrywa wtedy
 trzydziestu pozostałych projektów.
 
-`languages` w `stats.json` dalej trzyma surowe bajty — z nich bierze się
-licznik języków i „MB of code".
+`languages` w `stats.json` dalej trzyma surowe bajty, ale w banerze idzie
+z nich wyłącznie licznik języków. Sumy „X MB kodu" nie ma, bo z tych samych
+powodów byłaby zmyślona.
 
 ## Uwagi o składaniu
 
@@ -58,7 +59,7 @@ Materiał leci przez `hue`/`eq`/`colorbalance` (stała `grade` w `render.sh`),
 żeby fioletowe tło i roboty wpadły w paletę Kanagawa Dragon — tę samą, którą
 ma render kalendarza kontrybucji.
 
-Kolory pasków nie są wpisane na sztywno — `palette_from` kwantyzuje kadr
+Kolory pasków i liczb w panelu nie są wpisane na sztywno — `palette_from` kwantyzuje kadr
 z robotami i wyciąga z niego najczęstsze barwy, więc panel zawsze trzyma się
 tego, co widać wyżej. Gdyby kadr dał ich za mało, brakujące pozycje uzupełnia
 paleta Kanagawa Dragon.
