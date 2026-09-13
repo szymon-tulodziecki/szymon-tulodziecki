@@ -59,10 +59,15 @@ Materiał leci przez `hue`/`eq`/`colorbalance` (stała `grade` w `render.sh`),
 żeby fioletowe tło i roboty wpadły w paletę Kanagawa Dragon — tę samą, którą
 ma render kalendarza kontrybucji.
 
-Kolory pasków i liczb w panelu nie są wpisane na sztywno — `palette_from` kwantyzuje kadr
-z robotami i wyciąga z niego najczęstsze barwy, więc panel zawsze trzyma się
-tego, co widać wyżej. Gdyby kadr dał ich za mało, brakujące pozycje uzupełnia
-paleta Kanagawa Dragon.
+Kolory pasków i liczb w panelu nie są wpisane na sztywno — `palette_from`
+kwantyzuje kadr z robotami i wyciąga z niego najczęstsze barwy, więc panel
+zawsze trzyma się tego, co widać wyżej. Gdyby kadr dał ich za mało, brakujące
+pozycje uzupełnia paleta Kanagawa Dragon.
+
+Tło panelu też idzie z kadru: `backdrop` bierze dolne czterdzieści rzędów
+pikseli, rozmywa je w poziomie i przyciemnia, więc panel jest przedłużeniem
+tła wideo, a nie osobnym kolorem doklejonym pod spodem. Szarości tekstu i tor
+pasków trzymają się tego samego odcienia.
 
 Font: JetBrains Mono, z fallbackiem na DejaVu Sans Mono. `make_banner.py`
 szuka pliku po nazwie w katalogach z fontami, więc działa tak samo lokalnie
