@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import colorsys
 import json
 import os
 import sys
@@ -19,7 +20,7 @@ TRACK = (43, 44, 42)
 
 BACKDROP = [(0.0, (30, 38, 34)), (0.55, (26, 24, 24)), (1.0, (29, 30, 38))]
 
-CATEGORICAL = [
+FALLBACK = [
     (138, 154, 123),
     (139, 164, 176),
     (196, 178, 138),
@@ -27,15 +28,20 @@ CATEGORICAL = [
     (137, 146, 167),
     (142, 164, 162),
     (182, 146, 123),
-    (162, 146, 163),
-    (135, 169, 135),
-    (148, 159, 181),
-    (166, 166, 156),
 ]
 
+SAMPLE_REGION = (430, 20, 960, 330)
+SAMPLE_COLORS = 48
+SAMPLE_MIN_LIGHT = 0.20
+SAMPLE_MAX_LIGHT = 0.86
+SAMPLE_MIN_DISTANCE = 55
+LIFT_FLOOR = 0.50
+LIFT_CEIL = 0.74
+SATURATION = (0.20, 0.30)
+
 TAGLINE = "full-stack · embedded · devops"
-LEFT_TITLE = "W LICZBACH"
-RIGHT_TITLE = "JĘZYKI"
+LEFT_TITLE = "BY THE NUMBERS"
+RIGHT_TITLE = "LANGUAGES"
 
 PAD = 52
 COLUMN_X = 470
@@ -88,12 +94,49 @@ def bold(size):
     ), size)
 
 
+def lightness(rgb):
+    return colorsys.rgb_to_hls(*[c / 255 for c in rgb])[1]
+
+
+def distance(a, b):
+    return sum((x - y) ** 2 for x, y in zip(a, b)) ** 0.5
+
+
+def lifted(rgb):
+    hue, light, sat = colorsys.rgb_to_hls(*[c / 255 for c in rgb])
+    light = min(max(light, LIFT_FLOOR), LIFT_CEIL)
+    sat = min(max(sat, SATURATION[0]), SATURATION[1])
+    return tuple(round(c * 255) for c in colorsys.hls_to_rgb(hue, light, sat))
+
+
+def palette_from(frame, count):
+    sample = frame.crop(SAMPLE_REGION).convert(
+        "P", palette=Image.Palette.ADAPTIVE, colors=SAMPLE_COLORS
+    ).convert("RGB")
+    tally = sorted(
+        sample.getcolors(maxcolors=SAMPLE_COLORS * 4) or [], reverse=True
+    )
+
+    picked = []
+    for _, rgb in tally:
+        if not SAMPLE_MIN_LIGHT <= lightness(rgb) <= SAMPLE_MAX_LIGHT:
+            continue
+        if any(distance(rgb, taken) < SAMPLE_MIN_DISTANCE for taken in picked):
+            continue
+        picked.append(rgb)
+        if len(picked) == count:
+            break
+
+    colors = [lifted(rgb) for rgb in picked]
+    return colors + FALLBACK[: max(0, count - len(colors))]
+
+
 def number(value):
-    return f"{value:,}".replace(",", " ")
+    return f"{value:,}"
 
 
 def decimal(value, places=1):
-    return f"{value:.{places}f}".replace(".", ",")
+    return f"{value:.{places}f}"
 
 
 def backdrop():
@@ -191,10 +234,10 @@ def draw_tiles(draw, top, tiles):
         draw.text((x + 2, y + 34), label, font=regular(11), fill=DIM + (255,))
 
 
-def draw_languages(draw, top, ranked, total_bytes):
+def draw_languages(draw, top, ranked, total_bytes, palette):
     tracked(draw, (COLUMN_X, top), RIGHT_TITLE, bold(12), ACCENT, 3)
     draw.text(
-        (GUTTER, top), f"{decimal(total_bytes / 1e6)} MB kodu",
+        (GUTTER, top), f"{decimal(total_bytes / 1e6)} MB of code",
         font=regular(12), fill=DIM + (255,), anchor="ra",
     )
 
@@ -215,7 +258,7 @@ def draw_languages(draw, top, ranked, total_bytes):
         filled = max(6, round(bar_w * share / 100))
         draw.rounded_rectangle(
             [bar_x, middle - 3, bar_x + filled, middle + 3], radius=3,
-            fill=CATEGORICAL[i % len(CATEGORICAL)] + (255,),
+            fill=palette[i % len(palette)] + (255,),
         )
         draw.text((GUTTER, middle), f"{decimal(share)}%", font=value,
                   fill=FG + (255,), anchor="rm")
@@ -229,7 +272,7 @@ def dimmed(color):
     )
 
 
-def draw_spectrum(canvas, ranked):
+def draw_spectrum(canvas, ranked, palette):
     strip = Image.new("RGBA", (W, SPECTRUM_H))
     painter = ImageDraw.Draw(strip)
     x = 0.0
@@ -237,16 +280,17 @@ def draw_spectrum(canvas, ranked):
         width = W * share / 100
         painter.rectangle(
             [x, 0, x + width, SPECTRUM_H],
-            fill=dimmed(CATEGORICAL[i % len(CATEGORICAL)]) + (255,),
+            fill=dimmed(palette[i % len(palette)]) + (255,),
         )
         x += width
     canvas.paste(strip, (0, H - SPECTRUM_H))
 
 
-def shares(languages):
-    total = sum(languages.values())
-    return [(name, 100 * size / total) for name, size in
-            sorted(languages.items(), key=lambda item: -item[1])]
+def ranking(stats):
+    weights = stats.get("shares") or stats["languages"]
+    total = sum(weights.values())
+    return [(name, 100 * weight / total) for name, weight in
+            sorted(weights.items(), key=lambda item: -item[1])]
 
 
 def build(edge_path, stats_path, out_path):
@@ -254,11 +298,13 @@ def build(edge_path, stats_path, out_path):
         stats = json.load(handle)
 
     languages = stats["languages"]
-    ranked = shares(languages)
+    ranked = ranking(stats)
+    frame = Image.open(edge_path).convert("RGB")
+    palette = palette_from(frame, TOP_LANGUAGES + 2)
     canvas = Image.new("RGBA", (W, H), (0, 0, 0, 0))
 
     paint_scrim(canvas)
-    paint_panel(canvas, Image.open(edge_path).convert("RGB"))
+    paint_panel(canvas, frame)
 
     draw = ImageDraw.Draw(canvas)
     draw_identity(draw, stats["name"], stats["tagline"] or TAGLINE)
@@ -269,13 +315,13 @@ def build(edge_path, stats_path, out_path):
         fill=TRACK + (255,), width=1,
     )
     draw_tiles(draw, top, [
-        (number(stats["repos"]), "repozytoria"),
-        (number(len(languages)), "języki"),
-        (number(stats["stars"]), "gwiazdki"),
-        (number(stats["contributions"]), "kontrybucje / rok"),
+        (number(stats["repos"]), "repositories"),
+        (number(len(languages)), "languages"),
+        (number(stats["stars"]), "stars"),
+        (number(stats["contributions"]), "contributions / year"),
     ])
-    draw_languages(draw, top, ranked, sum(languages.values()))
-    draw_spectrum(canvas, ranked)
+    draw_languages(draw, top, ranked, sum(languages.values()), palette)
+    draw_spectrum(canvas, ranked, palette)
 
     canvas.save(out_path)
     print(f"{out_path}: {W}x{H}, {len(ranked)} jezykow")

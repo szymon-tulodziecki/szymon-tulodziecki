@@ -61,8 +61,17 @@ def collect():
     ]
 
     languages = collections.Counter()
+    shares = collections.Counter()
     for repo in repos:
-        languages.update(api(f"/repos/{login}/{repo['name']}/languages"))
+        breakdown = api(f"/repos/{login}/{repo['name']}/languages")
+        languages.update(breakdown)
+        weight = sum(breakdown.values())
+        if not weight:
+            continue
+        for name, size in breakdown.items():
+            shares[name] += size / weight
+
+    scale = 100 / sum(shares.values()) if shares else 0
 
     return {
         "login": login,
@@ -73,6 +82,9 @@ def collect():
         "followers": profile.get("followers", 0),
         "contributions": contributions(login),
         "languages": dict(languages.most_common()),
+        "shares": {
+            name: weight * scale for name, weight in shares.most_common()
+        },
     }
 
 
