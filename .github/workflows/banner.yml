@@ -1,0 +1,50 @@
+name: banner
+
+on:
+  schedule:
+    - cron: "0 3 * * 1"
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/banner.yml"
+      - "banner/*.py"
+      - "banner/render.sh"
+      - "banner/source.mp4"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: banner
+  cancel-in-progress: true
+
+jobs:
+  render:
+    name: przelicz statystyki i zloz baner
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Zaleznosci
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg fonts-jetbrains-mono
+          pip install --quiet pillow
+
+      - name: Render
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: bash ./banner/render.sh
+
+      - name: Commit & push
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A banner/hero-robots.gif
+          if git diff --staged --quiet; then
+            echo "statystyki bez zmian"
+          else
+            git commit -m "chore(banner): odswiez statystyki profilu"
+            git push
+          fi
