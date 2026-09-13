@@ -12,13 +12,14 @@ PHOTO_H = 358
 PANEL_H = 196
 H = PHOTO_H + PANEL_H
 
-FG = (197, 201, 197)
-MUTED = (122, 131, 130)
-DIM = (90, 96, 95)
+FG = (201, 204, 209)
+MUTED = (134, 141, 152)
+DIM = (96, 103, 115)
 ACCENT = (196, 178, 138)
-TRACK = (43, 44, 42)
 
-BACKDROP = [(0.0, (30, 38, 34)), (0.55, (26, 24, 24)), (1.0, (29, 30, 38))]
+PANEL_SOURCE_H = 40
+PANEL_DARKEN = 0.78
+TRACK_LIFT = 30
 
 FALLBACK = [
     (138, 154, 123),
@@ -140,21 +141,18 @@ def decimal(value, places=1):
     return f"{value:.{places}f}"
 
 
-def backdrop():
-    strip = Image.new("RGB", (W, 1))
-    pixels = strip.load()
-    for x in range(W):
-        t = x / (W - 1)
-        for i in range(len(BACKDROP) - 1):
-            left, right = BACKDROP[i], BACKDROP[i + 1]
-            if left[0] <= t <= right[0]:
-                k = (t - left[0]) / (right[0] - left[0])
-                pixels[x, 0] = tuple(
-                    round(left[1][c] + (right[1][c] - left[1][c]) * k)
-                    for c in range(3)
-                )
-                break
+def backdrop(frame):
+    strip = (
+        frame.crop((0, PHOTO_H - PANEL_SOURCE_H, W, PHOTO_H))
+        .resize((28, 1), Image.LANCZOS)
+        .resize((W, 1), Image.BICUBIC)
+        .point(lambda c: round(c * PANEL_DARKEN))
+    )
     return strip.resize((W, PANEL_H))
+
+
+def shade(color, amount):
+    return tuple(min(255, c + amount) for c in color)
 
 
 def paint_scrim(canvas):
@@ -170,7 +168,7 @@ def paint_scrim(canvas):
 
 
 def paint_panel(canvas, edge):
-    base = backdrop()
+    base = backdrop(edge)
     bleed = Image.blend(
         edge.crop((0, PHOTO_H - 1, W, PHOTO_H)).convert("RGB")
             .resize((W, PANEL_H)).filter(ImageFilter.GaussianBlur(7)),
@@ -236,7 +234,7 @@ def draw_tiles(draw, top, tiles, palette):
         draw.text((x + 2, y + 34), label, font=regular(11), fill=DIM + (255,))
 
 
-def draw_languages(draw, top, ranked, palette):
+def draw_languages(draw, top, ranked, palette, track):
     tracked(draw, (COLUMN_X, top), RIGHT_TITLE, bold(12), ACCENT, 3)
     draw.text(
         (GUTTER, top), RIGHT_NOTE,
@@ -255,7 +253,7 @@ def draw_languages(draw, top, ranked, palette):
                   anchor="lm")
         draw.rounded_rectangle(
             [bar_x, middle - 3, bar_x + bar_w, middle + 3], radius=3,
-            fill=TRACK + (255,),
+            fill=track + (255,),
         )
         filled = max(6, round(bar_w * share / 100))
         draw.rounded_rectangle(
@@ -266,15 +264,14 @@ def draw_languages(draw, top, ranked, palette):
                   fill=FG + (255,), anchor="rm")
 
 
-def dimmed(color):
-    base = BACKDROP[1][1]
+def dimmed(color, base):
     return tuple(
         round(c * (1 - SPECTRUM_DIM) + b * SPECTRUM_DIM)
         for c, b in zip(color, base)
     )
 
 
-def draw_spectrum(canvas, ranked, palette):
+def draw_spectrum(canvas, ranked, palette, base):
     strip = Image.new("RGBA", (W, SPECTRUM_H))
     painter = ImageDraw.Draw(strip)
     x = 0.0
@@ -282,7 +279,7 @@ def draw_spectrum(canvas, ranked, palette):
         width = W * share / 100
         painter.rectangle(
             [x, 0, x + width, SPECTRUM_H],
-            fill=dimmed(palette[i % len(palette)]) + (255,),
+            fill=dimmed(palette[i % len(palette)], base) + (255,),
         )
         x += width
     canvas.paste(strip, (0, H - SPECTRUM_H))
@@ -303,6 +300,9 @@ def build(edge_path, stats_path, out_path):
     ranked = ranking(stats)
     frame = Image.open(edge_path).convert("RGB")
     palette = palette_from(frame, TOP_LANGUAGES + 2)
+    base = tuple(round(c) for c in
+                 backdrop(frame).resize((1, 1), Image.LANCZOS).getpixel((0, 0)))
+    track = shade(base, TRACK_LIFT)
     canvas = Image.new("RGBA", (W, H), (0, 0, 0, 0))
 
     paint_scrim(canvas)
@@ -314,7 +314,7 @@ def build(edge_path, stats_path, out_path):
     top = PHOTO_H + 22
     draw.line(
         [(COLUMN_X - 30, top - 4), (COLUMN_X - 30, top + 152)],
-        fill=TRACK + (255,), width=1,
+        fill=track + (255,), width=1,
     )
     draw_tiles(draw, top, [
         (number(stats["repos"]), "repositories"),
@@ -322,8 +322,8 @@ def build(edge_path, stats_path, out_path):
         (number(stats["stars"]), "stars"),
         (number(stats["contributions"]), "contributions / year"),
     ], palette)
-    draw_languages(draw, top, ranked, palette)
-    draw_spectrum(canvas, ranked, palette)
+    draw_languages(draw, top, ranked, palette, track)
+    draw_spectrum(canvas, ranked, palette, base)
 
     canvas.save(out_path)
     print(f"{out_path}: {W}x{H}, {len(ranked)} jezykow")
